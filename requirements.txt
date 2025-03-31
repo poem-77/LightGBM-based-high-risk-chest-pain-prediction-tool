@@ -5,7 +5,8 @@ pandas==1.5.0
 shap==0.41.0
 matplotlib==3.6.0
 Pillow==9.2.0
-lightgbm==3.3.2
+lightgbm==4.5.0
+scikit-learn==1.4.2  # 添加这一行，指定与训练模型相同的版本
 altair==4.2.2
 setuptools>=65.5.0
 wheel
