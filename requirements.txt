@@ -1,8 +1,9 @@
-streamlit
-joblib
-numpy
-pandas
-shap
-matplotlib
-Pillow
-lightgbm
+streamlit==1.15.0
+joblib==1.2.0
+numpy==1.23.2
+pandas==1.5.0
+shap==0.41.0
+matplotlib==3.6.0
+Pillow==9.2.0
+lightgbm==3.3.2
+
