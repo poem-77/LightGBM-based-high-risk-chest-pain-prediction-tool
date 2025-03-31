@@ -16,7 +16,7 @@ st.set_page_config(
 
 
 # 加载模型和选定的特征
-@st.cache_resource
+@st.cache
 def load_model():
     model = joblib.load('model/lightgbm_risk_model.pkl')
     selected_features = joblib.load('model/selected_features.pkl')
