@@ -46,7 +46,7 @@ with st.sidebar:
     st.markdown("""
     - **Model Type**: LightGBM classifier
     - **Features**: 7 clinical parameters
-    - **Purpose**: Early risk stratification of acute coronary syndromes
+    - **Purpose**: Early risk stratification of acute chest pain
     - **Validation**: AUC-ROC 0.86 (95% CI 0.82-0.90)
     """)
 
