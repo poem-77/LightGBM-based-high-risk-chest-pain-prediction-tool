@@ -47,7 +47,7 @@ with st.sidebar:
     - **Model Type**: LightGBM classifier
     - **Features**: 7 clinical parameters
     - **Purpose**: Early risk stratification of acute chest pain
-    - **Validation**: AUC-ROC 0.86 (95% CI 0.82-0.90)
+    - **Validation**: AUC-ROC 0.909 (95% CI 0.887-0.928)
     """)
 
 # Input form
