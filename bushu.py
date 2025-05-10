@@ -7,15 +7,15 @@ import matplotlib.pyplot as plt
 import os
 from PIL import Image
 
-# 页面配置
+# Page configuration
 st.set_page_config(
-    page_title="胸痛风险预测器",
+    page_title="Chest Pain Risk Predictor",
     page_icon="❤️",
     layout="wide"
 )
 
 
-# 加载模型和选定特征
+# Load model and selected features
 @st.cache_resource
 def load_model():
     model = joblib.load('model/lightgbm_risk_model.pkl')
@@ -27,71 +27,62 @@ try:
     model, feature_names = load_model()
     model_loaded = True
 except:
-    st.error("加载模型失败。请确保模型文件存在于'model'目录中。")
+    st.error("Failed to load model. Please ensure model files exist in the 'model' directory.")
     model_loaded = False
 
 # Streamlit UI
-st.title("急性胸痛风险分层")
-st.markdown("此应用程序使用LightGBM分类器预测高风险心血管事件。")
+st.title("Acute Chest Pain Risk Stratification")
+st.markdown("This application predicts high-risk cardiovascular events using a LightGBM classifier.")
 
-# 侧边栏信息
+# Sidebar information
 with st.sidebar:
-    st.header("关于")
+    st.header("About")
     st.info(
-        "这个临床决策支持工具运用机器学习对胸痛患者进行心血管风险分层。"
-        "输入患者参数并点击'预测'进行评估。"
+        "This clinical decision support tool employs machine learning to stratify cardiovascular risk "
+        "in patients presenting with chest pain. Enter patient parameters and click 'Predict' for assessment."
     )
 
-    st.header("模型规格")
+    st.header("Model Specifications")
     st.markdown("""
-    - **模型类型**: LightGBM分类器
-    - **特征**: 7个临床参数
-    - **目的**: 急性胸痛的早期风险分层
-    - **验证**: AUC-ROC 0.909 (95% CI 0.887-0.928)
+    - **Model Type**: LightGBM classifier
+    - **Features**: 7 clinical parameters
+    - **Purpose**: Early risk stratification of acute chest pain
+    - **Validation**: AUC-ROC 0.909 (95% CI 0.887-0.928)
     """)
 
-# 输入表单
-st.subheader("患者临床参数")
+# Input form
+st.subheader("Patient Clinical Parameters")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    age = st.number_input("年龄(岁):", min_value=18, max_value=120, value=65)
-    max_creatinine = st.number_input("肌酐峰值(mg/dL):", min_value=0.0, max_value=15.0, value=1.0, step=0.1)
-    max_bun = st.number_input("尿素氮峰值(mg/dL):", min_value=0.0, max_value=200.0, value=20.0, step=0.1)
-    max_glucose = st.number_input("血糖峰值(mg/dL):", min_value=0.0, max_value=700.0, value=120.0, step=1.0)
+    age = st.number_input("Age (years):", min_value=18, max_value=120, value=65)
+    max_creatinine = st.number_input("Peak Creatinine (mg/dL):", min_value=0.0, max_value=15.0, value=1.0, step=0.1)
+    max_bun = st.number_input("Peak BUN (mg/dL):", min_value=0.0, max_value=200.0, value=20.0, step=0.1)
+    max_glucose = st.number_input("Peak Glucose (mg/dL):", min_value=0.0, max_value=700.0, value=120.0, step=1.0)
 
 with col2:
-    max_potassium = st.number_input("钾离子峰值(mmol/L):", min_value=2.0, max_value=8.0, value=4.0, step=0.1)
-    max_troponin = st.number_input("肌钙蛋白峰值(ng/mL):", min_value=0.0, max_value=50.0, value=0.01, step=0.01)
-    ethnicity = st.selectbox("种族:",
-                             options=["白人", "黑人", "西班牙裔", "亚洲人", "其他"],
+    max_potassium = st.number_input("Peak Potassium (mmol/L):", min_value=2.0, max_value=8.0, value=4.0, step=0.1)
+    max_troponin = st.number_input("Peak Troponin (ng/mL):", min_value=0.0, max_value=50.0, value=0.01, step=0.01)
+    ethnicity = st.selectbox("Ethnicity:",
+                             options=["White", "Black", "Hispanic", "Asian", "Other"],
                              index=0)
 
 
-# 种族编码
+# Ethnicity encoding
 def encode_ethnicity(ethnicity_value):
-    ethnicity_mapping = {
-        "白人": "White",
-        "黑人": "Black",
-        "西班牙裔": "Hispanic",
-        "亚洲人": "Asian",
-        "其他": "Other"
-    }
-    
     encoded = {}
-    english_value = ethnicity_mapping[ethnicity_value]
-    
     ethnicities = ["White", "Black", "Hispanic", "Asian", "Other"]
+
     for eth in ethnicities:
-        if eth != "White":  # 参考类别
+        if eth != "White":  # Reference category
             key = f"ethnicity_{eth}"
-            encoded[key] = 1 if english_value == eth else 0
+            encoded[key] = 1 if ethnicity_value == eth else 0
     return encoded
 
 
-if st.button("预测") and model_loaded:
-    # 准备输入数据
+if st.button("Predict") and model_loaded:
+    # Prepare input data
     ethnicity_encoded = encode_ethnicity(ethnicity)
 
     input_data = {
@@ -106,7 +97,7 @@ if st.button("预测") and model_loaded:
 
     input_df = pd.DataFrame([input_data])
 
-    # 确保特征对齐
+    # Ensure feature alignment
     missing_features = [feat for feat in feature_names if feat not in input_df.columns]
     if missing_features:
         for feat in missing_features:
@@ -114,29 +105,29 @@ if st.button("预测") and model_loaded:
 
     input_df = input_df[feature_names]
 
-    # 预测
+    # Prediction
     try:
         risk_probability = model.predict_proba(input_df)[0][1]
         predicted_class = 1 if risk_probability >= 0.5 else 0
 
-        tab1, tab2 = st.tabs(["风险评估", "模型解释"])
+        tab1, tab2 = st.tabs(["Risk Assessment", "Model Interpretation"])
 
         with tab1:
-            st.subheader("风险分层")
+            st.subheader("Risk Stratification")
 
             col1, col2 = st.columns([2, 3])
 
             with col1:
                 st.metric(
-                    label="事件概率",
+                    label="Event Probability",
                     value=f"{risk_probability:.1%}",
                     delta=None
                 )
 
                 if predicted_class == 1:
-                    st.error("**高风险**: 发生重大不良心脏事件(MACE)的概率较高")
+                    st.error("**High Risk**: Elevated probability of major adverse cardiac events (MACE)")
                 else:
-                    st.success("**低风险**: 急性冠脉综合征的可能性较低")
+                    st.success("**Low Risk**: Low likelihood of acute coronary syndrome")
 
             with col2:
                 fig, ax = plt.subplots(figsize=(5, 1))
@@ -148,32 +139,32 @@ if st.button("预测") and model_loaded:
                 ax.set_ylim(-0.5, 0.5)
                 ax.set_xticks([0, 25, 50, 75, 100])
                 ax.set_yticks([])
-                ax.set_xlabel('风险概率 (%)')
+                ax.set_xlabel('Risk Probability (%)')
                 ax.spines['top'].set_visible(False)
                 ax.spines['right'].set_visible(False)
                 ax.spines['left'].set_visible(False)
                 st.pyplot(fig)
 
-            st.subheader("临床建议")
+            st.subheader("Clinical Recommendations")
             if predicted_class == 1:
                 st.markdown("""
-                - 立即进行心脏科会诊
-                - 连续监测心脏生物标志物
-                - 每20-30分钟进行一次12导联心电图
-                - 考虑进行高级影像学检查(CTA/血管造影)
-                - 建议住院监测
+                - Immediate cardiology consultation
+                - Serial cardiac biomarker monitoring
+                - 12-lead ECG every 20-30 minutes
+                - Consider advanced imaging (CTA/angiography)
+                - Inpatient monitoring recommended
                 """)
             else:
                 st.markdown("""
-                - 72小时内进行门诊随访
-                - 如有指征进行运动负荷试验
-                - 风险因素修正咨询
-                - 重新评估非心脏病因
-                - 提供胸痛应对计划
+                - Outpatient follow-up within 72 hours
+                - Exercise stress testing if indicated
+                - Risk factor modification counseling
+                - Re-evaluate for non-cardiac etiologies
+                - Provide chest pain action plan
                 """)
 
         with tab2:
-            st.subheader("特征贡献分析")
+            st.subheader("Feature Contribution Analysis")
 
             explainer = shap.TreeExplainer(model)
             shap_values = explainer.shap_values(input_df)
@@ -197,12 +188,12 @@ if st.button("预测") and model_loaded:
             st.image("temp_shap_plot.png")
 
             st.markdown("""
-            **解释指南**:
-            - 正SHAP值(红色)增加预测风险
-            - 负SHAP值(蓝色)降低预测风险
-            - 特征影响大小由条形长度表示
-            - 基线值代表人群平均风险
+            **Interpretation Guide**:
+            - Positive SHAP values (red) increase predicted risk
+            - Negative SHAP values (blue) decrease predicted risk
+            - Feature impact magnitude shown by bar length
+            - Baseline value represents population average risk
             """)
 
     except Exception as e:
-        st.error(f"预测错误: {str(e)}")
+        st.error(f"Prediction error: {str(e)}")
